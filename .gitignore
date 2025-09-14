@@ -1,0 +1,11 @@
+# Laravel
+blog-app-backend/vendor
+blog-app-backend/node_modules
+blog-app-backend/public/storage
+blog-app-backend/storage/*.key
+blog-app-backend/.env
+
+# React
+react-blog-frontend/node_modules
+react-blog-frontend/build
+react-blog-frontend/.env
