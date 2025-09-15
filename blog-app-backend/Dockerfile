@@ -27,7 +27,8 @@ COPY . .
 RUN composer install --no-dev --optimize-autoloader
 
 # Generate Laravel key
-RUN php artisan key:generate
+# Generate key only if not already set
+RUN php artisan key:generate --force || true
 
 # Expose port 8000
 EXPOSE 8000
