@@ -1,6 +1,7 @@
 <?php
 
 namespace App\Http\Controllers;
+use Cloudinary\Uploader;
 
 use App\Models\TempImage;
 use Illuminate\Http\Request;
@@ -21,19 +22,34 @@ class TempImageController extends Controller
             ]);
         }
         // Upload Image Here
-        $image = $request->image;
-        $ext = $image->getClientOriginalExtension();
-        $imageName= time().'.'.$ext;
-        $tempImage = new TempImage();
-        $tempImage->name = $imageName;
-        $tempImage->save();
+    //     $image = $request->image;
+    //     $ext = $image->getClientOriginalExtension();
+    //     $imageName= time().'.'.$ext;
+    //     $tempImage = new TempImage();
+    //     $tempImage->name = $imageName;
+    //     $tempImage->save();
 
-        $image->move(public_path('uploads/temp/'),$imageName);
+    //     $image->move(public_path('uploads/temp/'),$imageName);
 
-        return response()->json([
-            'status'=>true,
-            'message'=>'Image Uploaded Successfully',
-            'image'=>$tempImage
-        ]);
+    //     return response()->json([
+    //         'status'=>true,
+    //         'message'=>'Image Uploaded Successfully',
+    //         'image'=>$tempImage
+    //     ]);
+
+      $uploaded = Uploader::upload(
+        $request->file('image')->getRealPath(),
+        ['folder' => 'temp_images'] // optional folder
+    );
+
+    $tempImage = new TempImage();
+    $tempImage->name = $uploaded['secure_url']; // store URL instead of filename
+    $tempImage->save();
+
+    return response()->json([
+        'status'=>true,
+        'message'=>'Image Uploaded Successfully',
+        'image'=>$tempImage
+    ]);
     }
 }

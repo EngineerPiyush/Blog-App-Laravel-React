@@ -15,8 +15,8 @@ class BlogController extends Controller
     {
         $blogs = Blog::orderBy('created_at', 'DESC');
 
-        if(!empty($request->keyword)){
-            $blogs = $blogs->where('title','like','%'.$request->keyword.'%');
+        if (!empty($request->keyword)) {
+            $blogs = $blogs->where('title', 'like', '%' . $request->keyword . '%');
         }
         $blogs = $blogs->get();
         return response()->json([
@@ -63,23 +63,30 @@ class BlogController extends Controller
         $blog->save();
 
         // save image here 
+        // $tempImage = TempImage::find($request->image_id);
+        // if ($tempImage != null) {
+        //     // create new image name
+        //     $imageExtArray = explode('.', $tempImage->name);
+        //     $ext = last($imageExtArray);
+        //     $imageName = time() . '-' . $blog->id . '.' . $ext;
+        //     // update db record
+        //     $blog->image = $imageName;
+        //     $blog->save();
+        //     // move file
+        //     $sourcePath = public_path('uploads/temp/' . $tempImage->name);
+        //     $destPath = public_path('uploads/blogs/' . $imageName);
+
+        //     if (File::copy($sourcePath, $destPath)) {
+        //         File::delete($sourcePath); // delete temp file
+        //         $tempImage->delete();      // optional: remove DB record of temp image
+        //     }
+        // }
+
         $tempImage = TempImage::find($request->image_id);
         if ($tempImage != null) {
-            // create new image name
-            $imageExtArray = explode('.', $tempImage->name);
-            $ext = last($imageExtArray);
-            $imageName = time() . '-' . $blog->id . '.' . $ext;
-            // update db record
-            $blog->image = $imageName;
+            $blog->image = $tempImage->name; // already a Cloudinary URL
             $blog->save();
-            // move file
-            $sourcePath = public_path('uploads/temp/' . $tempImage->name);
-            $destPath = public_path('uploads/blogs/' . $imageName);
-
-            if (File::copy($sourcePath, $destPath)) {
-                File::delete($sourcePath); // delete temp file
-                $tempImage->delete();      // optional: remove DB record of temp image
-            }
+            $tempImage->delete(); // clean up
         }
 
         return response()->json([
@@ -117,25 +124,31 @@ class BlogController extends Controller
         $blog->shortDesc = $request->shortDesc;
         $blog->save();
 
+        // $tempImage = TempImage::find($request->image_id);
+        // if ($tempImage != null) {
+        //     // delete old image if exists
+        //     if ($blog->image && File::exists(public_path('uploads/blogs/' . $blog->image))) {
+        //         File::delete(public_path('uploads/blogs/' . $blog->image));
+        //     }
+        //     $imageExtArray = explode('.', $tempImage->name);
+        //     $ext = last($imageExtArray);
+        //     $imageName = time() . '-' . $blog->id . '.' . $ext;
+        //     $blog->image = $imageName;
+        //     $blog->save();
+
+        //     $sourcePath = public_path('uploads/temp/' . $tempImage->name);
+        //     $destPath = public_path('uploads/blogs/' . $imageName);
+
+        //     if (File::copy($sourcePath, $destPath)) {
+        //         File::delete($sourcePath); // delete temp file
+        //         $tempImage->delete();      // optional: remove DB record of temp image
+        //     }
+        // }
         $tempImage = TempImage::find($request->image_id);
         if ($tempImage != null) {
-            // delete old image if exists
-            if ($blog->image && File::exists(public_path('uploads/blogs/' . $blog->image))) {
-                File::delete(public_path('uploads/blogs/' . $blog->image));
-            }
-            $imageExtArray = explode('.', $tempImage->name);
-            $ext = last($imageExtArray);
-            $imageName = time() . '-' . $blog->id . '.' . $ext;
-            $blog->image = $imageName;
+            $blog->image = $tempImage->name; // already a Cloudinary URL
             $blog->save();
-
-            $sourcePath = public_path('uploads/temp/' . $tempImage->name);
-            $destPath = public_path('uploads/blogs/' . $imageName);
-
-            if (File::copy($sourcePath, $destPath)) {
-                File::delete($sourcePath); // delete temp file
-                $tempImage->delete();      // optional: remove DB record of temp image
-            }
+            $tempImage->delete(); // clean up
         }
         return response()->json([
             'status' => true,
@@ -156,12 +169,13 @@ class BlogController extends Controller
             );
         }
         // Delete Blog Image First
-        File::delete(public_path('uploads/blogs/' . $blog->image));
+        // File::delete(public_path('uploads/blogs/' . $blog->image));
 
         // Delete Blog from DB
         $blog->delete();
 
-        return response()->json([
+        return response()->json(
+            [
                 'status' => true,
                 'message' => 'Blog deleted  successfully'
             ]
