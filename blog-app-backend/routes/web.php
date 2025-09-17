@@ -8,11 +8,10 @@ Route::get('/', function () {
 });
 Route::get('/test-cloudinary', function () {
     try {
-        $upload = Cloudinary::upload('https://res.cloudinary.com/demo/image/upload/sample.jpg', ['folder' => 'test_uploads']);
-        // Try to extract a URL:
-        $url = is_object($upload) && method_exists($upload, 'getSecurePath') ? $upload->getSecurePath() : ($upload['secure_url'] ?? null);
-        return response()->json(['status' => true, 'url' => $url, 'raw' => $upload]);
+        $result = Cloudinary::upload('https://res.cloudinary.com/demo/image/upload/sample.jpg');
+        return ['status' => true, 'url' => $result->getSecurePath()];
     } catch (\Exception $e) {
-        return response()->json(['status' => false, 'error' => $e->getMessage()], 500);
+        return ['status' => false, 'error' => $e->getMessage()];
     }
 });
+
