@@ -1,9 +1,8 @@
 FROM php:8.2-fpm
 
-# Install system dependencies + PostgreSQL libraries
+# Install system dependencies + PostgreSQL libraries + libcurl dev for php curl
 RUN apt-get update && apt-get install -y \
     build-essential \
-    curl \
     git \
     unzip \
     libpng-dev \
@@ -12,8 +11,13 @@ RUN apt-get update && apt-get install -y \
     libonig-dev \
     libxml2-dev \
     libpq-dev \
+    libzip-dev \
+    libcurl4-openssl-dev \
     zip \
-    && docker-php-ext-install pdo_pgsql pgsql mbstring exif pcntl bcmath gd
+    curl \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) gd pdo_pgsql pgsql mbstring exif pcntl bcmath zip curl fileinfo \
+    && apt-get clean && rm -rf /var/lib/apt/lists/*
 
 # Install Composer
 COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
