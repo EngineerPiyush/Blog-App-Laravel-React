@@ -24,12 +24,19 @@ WORKDIR /var/www
 
 COPY . .
 
-# 🔥 IMPORTANT FIXES
-RUN cp .env.example .env || true
-RUN composer install --no-dev --optimize-autoloader --no-scripts
+# Install dependencies
+RUN composer install --no-dev --optimize-autoloader
+
+# Generate key (safe)
 RUN php artisan key:generate
+
+# Clear cache (important)
 RUN php artisan config:clear && php artisan cache:clear
+
+# PHP upload limits (optional but good)
+RUN echo "upload_max_filesize=10M" >> /usr/local/etc/php/php.ini \
+ && echo "post_max_size=10M" >> /usr/local/etc/php/php.ini
 
 EXPOSE 8000
 
-CMD php artisan config:clear && php artisan cache:clear && php artisan migrate:fresh --force && php artisan serve --host=0.0.0.0 --port=10000
+CMD php artisan config:clear && php artisan cache:clear && php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=10000
