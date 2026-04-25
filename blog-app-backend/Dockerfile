@@ -24,8 +24,10 @@ WORKDIR /var/www
 
 COPY . .
 
-RUN composer install --no-dev --optimize-autoloader
-
+# 🔥 IMPORTANT FIXES
+RUN cp .env.example .env || true
+RUN composer install --no-dev --optimize-autoloader --no-scripts
+RUN php artisan key:generate
 RUN php artisan config:clear && php artisan cache:clear
 
 EXPOSE 8000
