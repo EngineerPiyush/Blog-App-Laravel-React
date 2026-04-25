@@ -79,8 +79,8 @@ This project is hosted on a free tier of Render:
 
 ## 📂 Project Structure
 
-* `/frontend` → React app
-* `/backend` → Laravel API
+* `/react-blog-frontend` → React app
+* `/blog-app-backend` → Laravel API
 
 ---
 
