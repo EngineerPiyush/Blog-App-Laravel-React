@@ -10,6 +10,9 @@ Route::get('/visit',function(Request $request){
         'message'=>'this api is working fine on /visit route'
     ]);
 });
+Route::get('/health', function () {
+    return response()->json(['status' => 'ok'], 200);
+});
 
 Route::post('blogs',[BlogController::class,'store']);
 Route::post('save-image-temp',[TempImageController::class,'store']);
