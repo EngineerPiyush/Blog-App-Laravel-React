@@ -14,20 +14,29 @@ const CreateBlog = () => {
   }
   const handleFileChange = async (e) => {
     const file = e.target.files[0];
+    if (!file) return;
+
     const formData = new FormData();
     formData.append("image", file);
 
-    const res = await fetch(`${API_URL}/api/save-image-temp`, {
-      method: "POST",
-      body: formData,
-    });
-    const result = await res.json();
-    if (result.status == false) {
-      alert(result.errors.image);
-      e.target.value = null;
-    }
+    try {
+      const res = await fetch(`${API_URL}/api/save-image-temp`, {
+        method: "POST",
+        body: formData,
+      });
 
-    setImageId(result.image.id);
+      const result = await res.json();
+
+      if (!res.ok || result.status === false) {
+        console.log(result);
+        alert(result.message || "Upload failed");
+        return;
+      }
+
+      setImageId(result.image.id);
+    } catch (error) {
+      console.error("Upload error:", error);
+    }
   };
   const {
     register,
@@ -37,7 +46,13 @@ const CreateBlog = () => {
   } = useForm();
 
   const formSubmit = async (data) => {
+    if (!imageId) {
+      toast.error("Please wait to upload image first");
+      return;
+    }
+
     const new_data = { ...data, description: html, image_id: imageId };
+
     const res = await fetch(`${API_URL}/api/blogs`, {
       method: "POST",
       headers: {
@@ -45,13 +60,16 @@ const CreateBlog = () => {
       },
       body: JSON.stringify(new_data),
     });
-    if (res.status) {
+
+    const result = await res.json();
+
+    if (res.ok) {
       toast.success("Blog created successfully");
       navigate("/");
     } else {
-      toast.error(res.message);
+      toast.error(result.message || "Error creating blog");
     }
-  }
+  };
   return (
     <div className="container mb-5">
       <div className="d-flex justify-content-between pt-5 mb-2">
@@ -68,11 +86,18 @@ const CreateBlog = () => {
               <input
                 type="text"
                 {...register("title", { required: true })}
+                {...register("title", {
+                  required: "Title is required",
+                  minLength: {
+                    value: 10,
+                    message: "Title must be at least 10 characters",
+                  },
+                })}
                 className={`form-control ${errors.title && "is-invalid"}`}
                 placeholder="Title"
               />
               {errors.title && (
-                <p className="invalid-feedback">Title field is required</p>
+                <p className="invalid-feedback">{errors.title.message}</p>
               )}
             </div>
             <div className="mb-3">
@@ -100,15 +125,23 @@ const CreateBlog = () => {
               <label className="form-label">Author</label>
               <input
                 type="text"
-                {...register("author", { required: true })}
+                {...register("author", {
+                  required: "Author is required",
+                  minLength: {
+                    value: 3,
+                    message: "Author must be at least 3 characters",
+                  },
+                })}
                 placeholder="Author"
                 className={`form-control ${errors.author && "is-invalid"}`}
               />
               {errors.author && (
-                <p className="invalid-feedback">Author field is required</p>
+                <p className="invalid-feedback">{errors.author.message}</p>
               )}
             </div>
-            <button className="btn btn-dark">Create</button>
+            <button className="btn btn-dark" disabled={!imageId}>
+              Create
+            </button>
           </div>
         </form>
       </div>

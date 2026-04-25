@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use CloudinaryLabs\CloudinaryLaravel\Facades\Cloudinary;
+use Cloudinary\Cloudinary;
 use App\Models\TempImage;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Validator;
@@ -53,40 +53,39 @@ class TempImageController extends Controller
 
         // --- CLOUDINARY UPLOAD (active) ---
         try {
-            $filePath = $request->file('image')->getRealPath();
+    $filePath = $request->file('image')->getRealPath();
 
-            // Upload and get response (Cloudinary facade)
-            $uploaded = Cloudinary::upload($filePath, ['folder' => 'temp_images']);
+    $cloudinary = new Cloudinary([
+        'cloud' => [
+            'cloud_name' => 'dct1mmp4t',
+            'api_key'    => '336521794433257',
+            'api_secret' => 'eYN-xmf6PsaBdFY9sAHIaL4K5Yc',
+        ],
+    ]);
 
-            // $uploaded may be an object (->getSecurePath()) or an array (['secure_url'])
-            $url = null;
-            if (is_object($uploaded) && method_exists($uploaded, 'getSecurePath')) {
-                $url = $uploaded->getSecurePath();
-            } elseif (is_array($uploaded) && isset($uploaded['secure_url'])) {
-                $url = $uploaded['secure_url'];
-            } elseif (is_object($uploaded) && isset($uploaded->secure_url)) {
-                $url = $uploaded->secure_url;
-            }
+    $uploaded = $cloudinary->uploadApi()->upload($filePath);
 
-            if (! $url) {
-                Log::error('TempImageController: Cloudinary returned no URL', ['uploaded' => $uploaded]);
-                return response()->json([
-                    'status' => false,
-                    'message' => 'Upload succeeded but no URL returned from Cloudinary',
-                    'uploaded' => $uploaded
-                ], 500);
-            }
+    $url = $uploaded['secure_url'];
 
-            $tempImage = new TempImage();
-            $tempImage->name = $url; // store full Cloudinary URL
-            $tempImage->save();
+    $tempImage = new TempImage();
+    $tempImage->name = $url;
+    $tempImage->save();
 
-            return response()->json([
-                'status' => true,
-                'message' => 'Image Uploaded Successfully',
-                'image' => $tempImage
-            ]);
-        } catch (\Exception $e) {
+    return response()->json([
+        'status' => true,
+        'message' => 'Image Uploaded Successfully',
+        'image' => $tempImage
+    ]);
+
+} catch (\Exception $e) {
+    Log::error('Cloudinary upload failed: ' . $e->getMessage());
+
+    return response()->json([
+        'status' => false,
+        'message' => 'Upload failed',
+        'error' => $e->getMessage()
+    ], 500);
+} catch (\Exception $e) {
             Log::error('TempImageController: Cloudinary upload failed: ' . $e->getMessage(), [
                 'exception' => $e
             ]);
