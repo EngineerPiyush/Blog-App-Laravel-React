@@ -1,6 +1,6 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+# Install dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     git \
@@ -29,29 +29,24 @@ RUN apt-get update && apt-get install -y \
         fileinfo \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Install Composer
+# Composer
 COPY --from=composer:2.5 /usr/bin/composer /usr/bin/composer
 
-# Set working directory
 WORKDIR /var/www
 
-# Copy project files
+# Copy files
 COPY . .
 
-# Install PHP dependencies
+# Install dependencies
 RUN composer install --no-dev --optimize-autoloader --no-scripts
 
-# Fix upload size (important for image upload)
+# Increase upload size
 RUN echo "upload_max_filesize=10M" > /usr/local/etc/php/conf.d/uploads.ini \
  && echo "post_max_size=12M" >> /usr/local/etc/php/conf.d/uploads.ini
 
-# Clear Laravel cache
-RUN php artisan config:clear && php artisan cache:clear
-
-# Expose port
 EXPOSE 8000
 
-# Start app (RUN at runtime, not build)
+# ✅ ONLY runtime commands here
 CMD php artisan config:clear && \
     php artisan cache:clear && \
     php artisan migrate --force && \
