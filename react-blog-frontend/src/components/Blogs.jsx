@@ -2,18 +2,23 @@ import React, { useState, useEffect } from "react";
 import BlogCard from "./BlogCard";
 const API_URL = import.meta.env.VITE_API_URL;
 function Blogs() {
-  const [blogs, setBlogs] = useState();
+  const [blogs, setBlogs] = useState([]);
   const [keyword,setKeyword] = useState('');
+  const [loading, setLoading] = useState(true);
   const fetchBlogs = async () => {
+    setLoading(true);
     const res = await fetch(`${API_URL}/api/blogs`);
     const result = await res.json();
     setBlogs(result.data);
+    setLoading(false);
   };
   const searchBlogs = async (e) => {
     e.preventDefault();
+    setLoading(true);
     const res = await fetch(`${API_URL}/api/blogs?keyword=`+keyword);
     const result = await res.json();
     setBlogs(result.data);
+     setLoading(false);
   };
   const resetSearch = () => {
     fetchBlogs();
@@ -47,19 +52,33 @@ function Blogs() {
           Create
         </a>
       </div>
-      <div className="row">
-        {blogs &&
+          <div className="row">
+          {loading ? (
+          [1,2,3,4].map((_, i) => (
+          <div className="col-md-3 mb-3" key={i}>
+            <div className="card p-3">
+              <div className="placeholder-glow">
+                <span className="placeholder col-12 mb-2"></span>
+                <span className="placeholder col-8 mb-2"></span>
+                <span className="placeholder col-6"></span>
+              </div>
+            </div>
+          </div>
+          ))
+          ) : (
+          blogs &&
           blogs.map((blog) => {
-            return (
-              <BlogCard
-                blogs={blogs}
-                setBlogs={setBlogs}
-                blog={blog}
-                key={blog.id}
-              />
-            );
-          })}
-      </div>
+          return (
+            <BlogCard
+              blogs={blogs}
+              setBlogs={setBlogs}
+              blog={blog}
+              key={blog.id}
+            />
+          );
+          })
+          )}
+          </div>
     </div>
   );
 }
